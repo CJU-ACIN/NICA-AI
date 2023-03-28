@@ -4,6 +4,13 @@ from gtts import gTTS               # Text to Speech
 import speech_recognition as sr     # 음성 인식
 from playsound import playsound     # 파이썬 음성 파일 재생 => 경로에 특수문자 들어가면 안됨
 
+from socket import *
+
+# 소켓 통신 세팅
+clientSock = socket(AF_INET, SOCK_STREAM)
+clientSock.connect(('203.252.240.40', 8080)) 
+print('연결 확인 됐습니다.')
+
 # 라즈베리파이에서 시스템 호출를 위해 사용
 # 2023.03.27 
 # 자동으로 음성 입력을 받고 이를 텍스트로 전환해줌
@@ -54,10 +61,20 @@ while True :
 
             # 어떤 명령인지 mqtt를 통해서 전달 (사물인식, 네비게이션, 책 읽기, 거리 측정)
             # 명령 수헹 
-            if '책' in result :
+            if '책' in command :
                 playsound('settingvoice/startBook.mp3') # 네 알겠습니다. 책 읽기를 도와드릴게요.
                 
                 # (명령애 따라서) 카메라 작동 및 mqtt 값 전송
+                clientSock.send('start_book_readMod'.encode('utf-8'))
+                
+                # 서버에서 리턴을 기다림
+                while True :
+                    data = clientSock.recv(1024)
+                    if data != None :
+                        print('받은 데이터 : ', data.decode('utf-8'))
+                        break
+
+
 
            
 
