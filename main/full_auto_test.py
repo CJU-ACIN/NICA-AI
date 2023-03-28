@@ -13,10 +13,10 @@ model = whisper.load_model("base")
 r = sr.Recognizer()
 
 # 음성 인식
-def speech2Text(work,source) :
+def speech2Text(work,source,time) :
     # 음성 입력
     print(f'{work} => 음성을 입력 준비 완료')
-    audio = r.listen(source)
+    audio = r.listen(source,timeout=time,phrase_time_limit=time)
 
     # 입력 받은 음성 저장
     with open(f'voice/input.wav',"wb") as f :
@@ -42,7 +42,7 @@ while True :
     with sr.Microphone(sample_rate=16000) as source:
 
         # 음성 인식
-        result = speech2Text("[호출]",source)
+        result = speech2Text("[호출]",source,5)
 
         # 호출
         if '니카' in result or '니가' in result :
@@ -50,7 +50,7 @@ while True :
             time.sleep(0.5)
 
             # 음성 명령어 입력 받음
-            command = speech2Text("[명령]",source)
+            command = speech2Text("[명령]",source,10)
 
             # 어떤 명령인지 mqtt를 통해서 전달 (사물인식, 네비게이션, 책 읽기, 거리 측정)
             # 명령 수헹 
