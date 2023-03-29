@@ -50,6 +50,26 @@ def speech2Text(work,source,time) :
     print(f'- 인식 결과 : {result.text}')
     return result.text
 
+def commandList() :
+    for i in range(3) :
+        # 음성 명령어 입력 받음
+        command = speech2Text("[명령]",source,10)
+        if i != 2 :
+            # 어떤 명령인지 mqtt를 통해서 전달 (사물인식, 네비게이션, 책 읽기, 거리 측정
+            if '책' in command :
+                playsound('settingvoice/startBook.mp3') # 네 알겠습니다. 책 읽기를 도와드릴게요.
+                
+                # (명령애 따라서) 카메라 작동 및 소켓 통신
+                bookRead(clientSock)
+                break
+            else :
+                playsound('settingvoice/re_voice_input.mp3') # 해당하는 명령어를 찾을 수 없어요. 다시 말씀해 주세요.
+                time.sleep(0.5)
+        else :
+            playsound('settingvoice/re_voice_end.mp3') # 해당하는 명령어를 찾을 수 없어요. 3회 이상 반복하여 대기 모드르 돌아갑니다.
+
+playsound('settingvoice/system_start.mp3') # 니카 온라인
+
 while True :
     with sr.Microphone(sample_rate=16000) as source:
 
@@ -61,16 +81,10 @@ while True :
             playsound('settingvoice/start.mp3') # 안녕하세요 니카입니다. 무엇을 도와드릴까요?
             time.sleep(0.5)
 
-            # 음성 명령어 입력 받음
-            command = speech2Text("[명령]",source,10)
+            # 명령어 판별
+            commandList()
 
-            # 어떤 명령인지 mqtt를 통해서 전달 (사물인식, 네비게이션, 책 읽기, 거리 측정
-            if '책' in command :
-                playsound('settingvoice/startBook.mp3') # 네 알겠습니다. 책 읽기를 도와드릴게요.
-                
-                # (명령애 따라서) 카메라 작동 및 소켓 통신
-                bookRead(clientSock)
-
+        
         elif '종료' in result :
             exit()
         
