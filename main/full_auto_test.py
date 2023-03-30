@@ -26,29 +26,35 @@ r = sr.Recognizer()
 
 # 음성 인식
 def speech2Text(work,source,time) :
-    # 음성 입력
-    print(f'{work} => 음성을 입력 준비 완료')
-    audio = r.listen(source,timeout=time,phrase_time_limit=time)
 
-    # 입력 받은 음성 저장
-    with open(f'voice/input.wav',"wb") as f :
-        f.write(audio.get_wav_data())
+    try :
+        # 음성 입력
+        print(f'{work} => 음성을 입력 준비 완료')
+        audio = r.listen(source,timeout=time,phrase_time_limit=time)
 
-    # 저장된 음성 파일로 텍스트 추출
-    audio = whisper.load_audio("voice/input.wav")
-    audio = whisper.pad_or_trim(audio)
-    mel = whisper.log_mel_spectrogram(audio).to(model.device)
-    _, probs = model.detect_language(mel)
+        # 입력 받은 음성 저장
+        with open(f'voice/input.wav',"wb") as f :
+            f.write(audio.get_wav_data())
+
+        # 저장된 음성 파일로 텍스트 추출
+        audio = whisper.load_audio("voice/input.wav")
+        audio = whisper.pad_or_trim(audio)
+        mel = whisper.log_mel_spectrogram(audio).to(model.device)
+        _, probs = model.detect_language(mel)
+        
+        # 입력 값 확인 후 반환
+        print(f"- 감지된 언어 : {max(probs, key=probs.get)}")
+        options = whisper.DecodingOptions(fp16 = False)
+        result = whisper.decode(model, mel, options)
+        os.remove('voice/input.wav')
+
+        # Text 출력
+        print(f'- 인식 결과 : {result.text}')
+        return result.text
     
-    # 입력 값 확인 후 반환
-    print(f"- 감지된 언어 : {max(probs, key=probs.get)}")
-    options = whisper.DecodingOptions(fp16 = False)
-    result = whisper.decode(model, mel, options)
-    os.remove('voice/input.wav')
-
-    # Text 출력
-    print(f'- 인식 결과 : {result.text}')
-    return result.text
+    except Exception as e:
+        print(e)
+        return "none"
 
 def commandList(source) :
     for i in range(3) :
