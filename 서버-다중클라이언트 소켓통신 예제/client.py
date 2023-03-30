@@ -11,7 +11,6 @@ stopServiceRequest_active = True
 # 진행중인 작업 중단
 def stopServiceRequest(clientSock):
     global stopServiceRequest_active
-    global getResponse_active
     
     cnt = 0
     while stopServiceRequest_active:
