@@ -5,35 +5,47 @@ import time
 
 
 # 결과값 받기 대기 확인
-continue_wait = True
-
+getResponse_active = True
+stopServiceRequest_active = True
 
 # 진행중인 작업 중단
 def stopServiceRequest(clientSock):
-    while True:
-        msg = input("멈춰 치면 멈춤: ")
-        
-        if msg == "멈춰":
-            text = "종료"
-            clientSock.send(text.encode('utf-8'))
-            global continue_wait
-            continue_wait = False
-            
-            break
-        
-        
-
-def waitResponse(cilentSock):
-    global continue_wait
+    global stopServiceRequest_active
+    global getResponse_active
     
-    while continue_wait:
+    cnt = 0
+    while stopServiceRequest_active:
+        msg = "."
+        time.sleep(0.5)
+        clientSock.send(msg.encode('utf-8'))
+
+        cnt+=1
+        if cnt==5:
+            msg = "중단"
+            clientSock.send(msg.encode('utf-8'))
+
+
+def getResponse(cilentSock):
+    global stopServiceRequest_active
+    global getResponse_active
+    
+    while getResponse_active:
         data = cilentSock.recv(1024)
         print('받은 데이터 : ', data.decode('utf-8'))
-        break
+
+        if data == ".":
+            ...
+
+        elif data == "중단":
+            print("서비스 중단!")
+        
+        else:
+            print("결과값")
+    
 
 
 clientSock = socket(AF_INET, SOCK_STREAM)
-server_address = '192.168.0.2'
+server_address = '203.252.230.246'
 
 clientSock.connect((server_address, 8081)) 
 
@@ -56,7 +68,7 @@ if data == "SUCCESS":
         clientSock.send(text.encode('utf-8'))
         
         # 스레드 선언
-        thread_waitResponse = threading.Thread(target=waitResponse, args = (clientSock,))
+        thread_waitResponse = threading.Thread(target=getResponse, args = (clientSock,))
         
         thread_stopServiceRequest = threading.Thread(target=stopServiceRequest, args = (clientSock,))
         
@@ -65,12 +77,13 @@ if data == "SUCCESS":
         thread_stopServiceRequest.start()
         
         thread_waitResponse.join()
-        
+        thread_stopServiceRequest.join()
         
         time.sleep(0.5) # 이거 안넣으면 쓰레드 멈춘걸 감지못해서 계속함
     
         # 다시 active 상태로 만들어주기
-        continue_wait = True
+        getResponse_active = True
+        stopServiceRequest_active = True
 
 
 

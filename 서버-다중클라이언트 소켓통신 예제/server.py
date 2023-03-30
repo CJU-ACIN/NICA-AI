@@ -11,35 +11,38 @@ import time # 작업시간 예시
 
 # 작업 명령 boolean
 serviceToy_active = True
-stopService = True
+stopService_active = True
 
 # 결과값
 result_toy = ""
 
-## 중단의 중단 신호 체크 하는 거 만들기 ㅅㅂㅋㅋ
+## 중단의 중단 신호 체크 하는 거 만들기
 
 # 진행중인 작업 중단
 def stopServiceProcess(client, service_thread):
-    data = client.recv(1024)
-    
     global serviceToy_active
-    serviceToy_active = False
+    global stopService_active
+    while stopService_active:
+        data = client.recv(1024)
     
-    if data.decode('utf-8') == "종료":
-        print("요청 중단!")
+        if data.decode('utf-8') == "종료":
+            serviceToy_active = False
+            print("요청 중단!")
 
 
 def toy():
     global serviceToy_active
+    global stopService_active
     global result_toy
     
-    for i in range(22312323):
+    for i in range(3):
         print(i)
         time.sleep(0.5)
         
         
         if serviceToy_active == False:
             client.send("중단".encode('utf-8'))
+            
             break
 
         result_toy = "결과값"
@@ -122,8 +125,6 @@ while True:
 
     # 인원 초과 안될 때
     if cur_conn <= max_conn:
-
-        print("aaaa")
         thread_service = threading.Thread(target=service, args=(client, address))
         thread_service.start()
     
