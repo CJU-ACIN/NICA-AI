@@ -4,42 +4,50 @@ import threading # 멀티스레드를 통한 병렬처리
 import time # 작업시간 예시
 
 
+## 아래 작업명령boolean 과 결과값 따로 변수 밖에 뺴서 이걸로 쓰는거라
+## 멀티 사용자는 안됨
+## 하지만 클래스를 만들어서 안에 다 꼬라박으면 됨
+# 그니깐 누군가 해줘
 
-'''
-print(str(addr),'에서 접속이 확인되었습니다.')
-print("명령 대기 중")
-while True :
-    try:
-        data = connectionSock.recv(1024).decode('utf-8')
-        
-        """
-        # if-elif로 해서 작업 분류하면될듯
-        예시)
-        
-        elif data.find('읽어줘'):
-            OCR 작업수행
-        
-        elif data.find('저거 알려줘'):
-            손끝점 작업 ㅜ=수행
-        
-        elif 등등
-            ...
-        """
-        
-        print(data + '에 대한 작업 처리 중')
-        time.sleep(1.5) # 작업 소요시간 1.5초
-        print(data + '에 대한 처리 완료')
-        
-        text = (data+"처리 결과값").encode('utf-8')
-        
-        connectionSock.send(text)
+# 작업 명령 boolean
+serviceToy_active = True
+stopService = True
 
-    except ConnectionAbortedError:
-        print("기존 클라이언트와 접속 끊김")
-        break
-'''
+# 결과값
+result_toy = ""
 
-# 실제로 수행하는 서비스
+## 중단의 중단 신호 체크 하는 거 만들기 ㅅㅂㅋㅋ
+
+# 진행중인 작업 중단
+def stopServiceProcess(client, service_thread):
+    data = client.recv(1024)
+    
+    global serviceToy_active
+    serviceToy_active = False
+    
+    if data.decode('utf-8') == "종료":
+        print("요청 중단!")
+
+
+def toy():
+    global serviceToy_active
+    global result_toy
+    
+    for i in range(22312323):
+        print(i)
+        time.sleep(0.5)
+        
+        
+        if serviceToy_active == False:
+            client.send("중단".encode('utf-8'))
+            break
+
+        result_toy = "결과값"
+        
+    return result_toy
+
+    
+# 클라이언트 서비스
 def service(client, address):
     client.send("SUCCESS".encode('utf-8'))
     print(f"{address}에서 접속 성공")
@@ -52,9 +60,22 @@ def service(client, address):
             
             print(f"{address}의 요청: {request} ... 처리 중")
             
-            time.sleep(2) # 실제 작업; 작업 소요시간 2초
+            thread_toy = threading.Thread(target=toy)
+            thread_stopServiceProcess = threading.Thread(target=stopServiceProcess, args=(client,thread_toy))
             
-            print(f"{address}의 요청: {request} ... 완료")
+            thread_toy.start()
+            thread_stopServiceProcess.start()
+
+            thread_toy.join()
+            thread_stopServiceProcess.join()
+            
+            
+            time.sleep(0.5) # 이거 안넣으면 쓰레드 멈춰야하는거 감지못해서 계속함
+            
+            # 다시 active 상태로 만들어주기
+            global serviceToy_active
+            serviceToy_active = True
+    
             
             
             """
@@ -71,10 +92,6 @@ def service(client, address):
             elif 등등
                 ...
             """
-
-            # 텍스트로 이루어진 결과값
-            response = (f"{request}처리 결과값").encode('utf-8')
-            client.send(response)
             
         except ConnectionAbortedError:
             break
@@ -83,7 +100,6 @@ def service(client, address):
             break
     
     client.close()
-
 
 
 ### 메인 동작
@@ -106,7 +122,8 @@ while True:
 
     # 인원 초과 안될 때
     if cur_conn <= max_conn:
-        
+
+        print("aaaa")
         thread_service = threading.Thread(target=service, args=(client, address))
         thread_service.start()
     
