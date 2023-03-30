@@ -7,7 +7,22 @@ from playsound import playsound
 import numpy as np
 from whisper import whisper         # Speech to Text
 
-def recognize(sock,type,model,r,source) :
+def sendPhoto(sock,frame,type) :
+    # 캡쳐한 사진 데이터 변환
+    encode_param=[int(cv2.IMWRITE_JPEG_QUALITY),90]
+    result, imgencode = cv2.imencode('.jpeg', frame, encode_param)
+    data = np.array(imgencode)
+
+    # 서버로 전송
+    print(f"클라이언트 수신 명령 => {type}")
+    sock.send(type.encode('utf-8'))
+    sock.sendall(str(len(data)).ljust(16).encode('utf-8'))
+    time.sleep(0.5)
+    sock.send(data.tobytes())
+    print('메시지를 전송했습니다.')
+
+def ocr(sock,type,model,r,source) :
+
     # 음성 인식
     def speech2Text(work,source,time) :
         # 음성 입력
@@ -42,17 +57,8 @@ def recognize(sock,type,model,r,source) :
         ret, frame = vid.read() 
 
         if ret :
-
-            # 캡쳐한 사진 데이터 변환
-            encode_param=[int(cv2.IMWRITE_JPEG_QUALITY),90]
-            result, imgencode = cv2.imencode('.jpeg', frame, encode_param)
-            data = np.array(imgencode)
-
-            # 서버로 전송
-            sock.sendall(str(len(data)).ljust(16).encode('utf-8'))
-            time.sleep(0.5)
-            sock.send(data.tobytes())
-            print('메시지를 전송했습니다.')
+            # 인코딩 후 사진 전송
+            sendPhoto(sock,frame,type)
 
             try :
                 # 서버에서 처리한 음성데이터 텍스트 수신
@@ -88,6 +94,7 @@ def recognize(sock,type,model,r,source) :
                         
                         # 글주 추가 인식 여부 확인
                         playsound("settingvoice/word_end.mp3")
+                        playsound('settingvoice/good.mp3')
                         result = speech2Text("[단어 재인식 여부]",source,5)
 
                         # 추가 인식
@@ -118,3 +125,21 @@ def recognize(sock,type,model,r,source) :
 
     # 3회 글자 인식 실패
     if count >= 2 : playsound('settingvoice/count_out_read_book.mp3') # 3회 이상 틀려서 대기모드로 돌아갑니다.
+
+def handRecognize(sock,type,model,r,source) :
+
+    # 생성
+    vid = cv2.VideoCapture(0)
+    ret, frame = vid.read() 
+
+    if ret :
+        # 인코딩 후 사진 전송
+        sendPhoto(sock,frame,type)
+
+        print("성공")
+
+    # opencv 캡쳐 오류 시 다시 캡쳐
+    else :
+        print("사진 캡쳐에 오류가 있습니다.")
+        playsound('settingvoice/cap_error.mp3')
+        

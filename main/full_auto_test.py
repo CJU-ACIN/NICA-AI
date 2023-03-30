@@ -9,7 +9,7 @@ from playsound import playsound     # 파이썬 음성 파일 재생 => 경로�
 
 from socket import *
 
-from socket_c import recognize
+from socket_c import ocr, handRecognize
 
 # 소켓 통신 세팅
 clientSock = socket(AF_INET, SOCK_STREAM)
@@ -53,24 +53,30 @@ def speech2Text(work,source,time) :
 def commandList(source) :
     for i in range(3) :
         # 음성 명령어 입력 받음
-        # playsound('settingvoice/insick.mp3')
+        playsound('settingvoice/good.mp3')
         command = speech2Text("[명령]",source,10)
-
+    
         if i != 3 :
             # 어떤 명령인지 mqtt를 통해서 전달 (사물인식, 네비게이션, 책 읽기, 거리 측정
             if '책' in command :
                 playsound('settingvoice/startBook.mp3') # 네 알겠습니다. 책 읽기를 도와드릴게요.
 
                 # (명령애 따라서) 카메라 작동 및 소켓 통신
-                recognize(clientSock,"book",model,r,source) # => 책
+                ocr(clientSock,"book",model,r,source) # => 독서 모드
                 break
 
             elif '글자' in command :
                 playsound('settingvoice/start_word_recognize.mp3') # 네 알겠습니다. 책 읽기를 도와드릴게요.
 
                 # (명령애 따라서) 카메라 작동 및 소켓 통신
-                recognize(clientSock,"word",model,r,source) # => 글자
+                ocr(clientSock,"word",model,r,source) # => 글자 인식 모드
                 break
+
+            elif '손' in command :
+                # (명령애 따라서) 카메라 작동 및 소켓 통신
+                handRecognize(clientSock,"hand",model,r,source) # => 글자 인식 모드
+                break
+
 
             elif '니카' in command or '니가' in command :
                 playsound('settingvoice/start.mp3') # 안녕하세요 니카입니다. 무엇을 도와드릴까요?
