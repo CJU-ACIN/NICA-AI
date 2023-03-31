@@ -37,16 +37,19 @@ pip install -e .
 
 ## 2. ffmpeg 설치
 
-```
-https://www.gyan.dev/ffmpeg/builds/
-```
+[링크](https://www.gyan.dev/ffmpeg/builds/)
 
 위 사이트에 접속해서 latest git master branch build (제일 상단) 에서
 
 ffmpeg-git-essentials.7z
 .ver .sha256
 
-다운 받고 압축 풀고 나오는 /bin 폴더에 환경변수 등록
+```
+가상환경이름/Script/
+```
+여기에 들어와서 ffmpeg.exe 넣어주셈
+
+~~다운 받고 압축 풀고 나오는 /bin 폴더에 환경변수 등록~~ (안해도되는것같음)
 
 
 <br><br>
