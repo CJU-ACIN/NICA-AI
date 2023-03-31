@@ -51,6 +51,10 @@ pip install SpeechRecognition
 pip install playsound
 ```
 
+```
+pip install pyaudio
+```
+
 <br><br>
 
 ## 3. 결과
