@@ -15,6 +15,8 @@
 
 ***virtualenv python 3.8.x 가상환경 기준*** 
 
+~~***3.8.10***~~
+
 <br>
 
 ## 1. whisper 설치
@@ -33,7 +35,25 @@ pip install -e .
 
 <br><br>
 
-## 2. 나머지 설치
+## 2. ffmpeg 설치
+
+```
+https://www.gyan.dev/ffmpeg/builds/
+```
+
+위 사이트에 접속해서 latest git master branch build (제일 상단) 에서
+
+ffmpeg-git-essentials.7z
+.ver .sha256
+
+다운 받고 압축 풀고 나오는 /bin 폴더에 환경변수 등록
+
+
+<br><br>
+
+## 3. 나머지 설치
+
+***주의: playsound는 1.2.2 버전 설치. 이유 궁금하면 최신걸로 설치하셈***
 
 ```
 pip install opencv-python
@@ -48,7 +68,7 @@ pip install SpeechRecognition
 ```
 
 ```
-pip install playsound
+pip install playsound==1.2.2
 ```
 
 ```
