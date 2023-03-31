@@ -7,6 +7,11 @@ test_server => 리눅스 서버 전용 (서버)
 
 <br><br><br>
 
+# 가상환경 세팅
+[CLICK ME!](https://github.com/CJU-ACIN/NICA-AI/tree/main/_nica-venv)
+
+<br><br><br>
+
 # 용도
 
 | <center> 이름 </center> | <center> 용도 </center> |
