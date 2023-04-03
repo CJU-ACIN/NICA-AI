@@ -25,7 +25,7 @@ def foo1():
 
 def createSock():
     clientSock = socket(AF_INET, SOCK_STREAM)
-    print(clientSock)
+    print(f'클라이언트 소켓 : {clientSock}')
     return clientSock
 
 
@@ -33,12 +33,12 @@ a = False
 
 myClientSock = createSock()
 p = multiprocessing.Process(target = foo, args=(myClientSock,))
-p1 = multiprocessing.Process(target = foo1)
-print(p1.is_alive())
+p1 = multiprocessing.Process(target = foo1) # 취소 대기
+print(f'p1 확인 :{p1.is_alive()}')
 pl = []   
 
 if __name__ == "__main__":
-    server_address = "192.168.0.2"
+    server_address = "127.0.0.1"
     print(myClientSock.connect((server_address, 6974)))
     print("START")
 

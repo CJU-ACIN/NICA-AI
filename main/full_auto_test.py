@@ -11,11 +11,6 @@ from socket import *
 
 from socket_c import ocr, handRecognize
 
-# 소켓 통신 세팅
-clientSock = socket(AF_INET, SOCK_STREAM)
-clientSock.connect(('203.252.240.40', 8080)) 
-print('연결 확인 됐습니다.')
-
 # 라즈베리파이에서 시스템 호출를 위해 사용
 # 2023.03.30
 # 자동으로 음성 입력을 받고 이를 텍스트로 전환해줌
@@ -57,6 +52,11 @@ def speech2Text(work,source,time) :
         return "none"
 
 def commandList(source) :
+    # 소켓 통신 세팅
+    clientSock = socket(AF_INET, SOCK_STREAM)
+    clientSock.connect(('203.252.240.40', 8080)) 
+    print('연결 확인 됐습니다.')
+
     for i in range(3) :
         # 음성 명령어 입력 받음
         playsound('settingvoice/good.mp3')
