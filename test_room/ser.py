@@ -3,6 +3,38 @@ from socket import *
 # import threading # 멀티스레드를 통한 병렬처리
 import time # 작업시간 예시
 import multiprocessing
+from multiprocessing import set_start_method
+import torch
+
+#server.py
+from socket import *
+import matplotlib.pyplot as plt
+from PIL import Image
+import cv2, pickle, struct, io
+import numpy as np
+import base64, time
+from pororo import Pororo
+import mediapipe as mp
+
+def recvall(sock, count):
+    buf = b''
+    while count:
+        newbuf = sock.recv(count)
+        if not newbuf: return None
+        buf += newbuf
+        count -= len(newbuf)
+    return buf
+
+
+def imageDecode(connectionSock) :
+    length = recvall(connectionSock,16)
+    stringData = recvall(connectionSock, int(length))
+
+    data = np.frombuffer(stringData, dtype='uint8')
+
+    decimg=cv2.imdecode(data,1)
+    cv2.imwrite("t.jpeg", decimg)
+
 
 # 실제로 수행하는 서비스
 def service(connectionSock):
@@ -17,11 +49,12 @@ def service(connectionSock):
             if command == "book" or command == "word" :
                 
                 # 이미지 디코딩 후 저장
-                imageDecode()
+                imageDecode(connectionSock)
 
                 img = "t.jpeg"
-                ocr = Pororo(task="ocr", lang='ko')
-
+                #device = torch.device("cpu")
+                ocr = Pororo(task="ocr", lang='ko',)
+                
                 text = ""
 
                 # 텍스트 생성
@@ -42,7 +75,7 @@ def service(connectionSock):
                 mpDraw = mp.solutions.drawing_utils
 
                 # 이미지 디코딩 후 저장
-                imageDecode()
+                imageDecode(connectionSock)
 
                 src = cv2.imread('t.jpeg', cv2.IMREAD_COLOR)
 
@@ -71,7 +104,7 @@ def service(connectionSock):
         except ConnectionResetError:
             break
     
-    client.close()
+    #client.close()
 
 
 def checkStopSignal(client):
@@ -84,8 +117,9 @@ def checkStopSignal(client):
 
 ## 메인
 if __name__ == '__main__' :
-    ### 메인 동작
 
+    #set_start_method('spawn')
+    ### 메인 동작
     # 서버 소켓 객체 생성
     serverSock = socket(AF_INET, SOCK_STREAM) #두가지인자는 어드레스 패밀리, 소켓 타입 
     # '' = 포트 8080에 접속하는 모든 ip 허용
@@ -103,14 +137,16 @@ if __name__ == '__main__' :
 
     subClient, _ = serverSock.accept() # subSock for sub
     cur_conn += 1
-    print(f'서브 : {subClient}')
+    print(f'서브 : {subClient}\n')
 
     
     
     while True:
-        print("while문 실행")
+       
+        #print("while문 실행")
         current_process = []
-        print(f'클라이언트 소켓 확인: {subClient}')
+        #print(f'클라이언트 소켓 확인: {subClient}')
+        #multi.set_start_method('spawn')
         mainProcess = multiprocessing.Process(target=service, args=(mainClient,))
         subProcess = multiprocessing.Process(target=checkStopSignal, args=(subClient,))
        
@@ -123,11 +159,11 @@ if __name__ == '__main__' :
         
         time.sleep(1)
         print("== 프로세스 확인 시작 ==")
-        print(f'=> 프로세스 실행 확인 :{current_process}')
+        #print(f'=> 프로세스 실행 확인 :{current_process}')
         
         while len(current_process) == 2:
-            print("while문 도는 중")
-            print(current_process)
+            #print("while문 도는 중")
+            #print(current_process)
             for i in current_process:
                 if not i.is_alive():
                     #current_process.remove(i)
@@ -151,7 +187,7 @@ if __name__ == '__main__' :
         mainProcess.close()
         subProcess.close()
             
-        print(f'재실행 전 확인 :{current_process}')
+        #print(f'재실행 전 확인 :{current_process}')
         
         subProcess = ""
         mainProcess = ""

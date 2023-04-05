@@ -41,8 +41,10 @@ def sendPhoto(sock,frame,type) :
 
 # STT 모듈
 def speech2Text(work,source,time) :
+
     r = sr.Recognizer()
     model = whisper.load_model("base")
+    
     try :
         print(f'{work} => 음성을 입력 준비 완료')
         audio = r.listen(source,timeout=time,phrase_time_limit=time)         # 음성 입력
