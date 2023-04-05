@@ -1,7 +1,7 @@
 #client.py
 import os
 from socket import *
-import multiprocessing, time, cv2
+import multiprocessing, time, cv2, signal
 import speech_recognition as sr  
 from whisper import whisper
 from playsound import playsound   
@@ -117,6 +117,9 @@ def ocr(sock,type,source) :
                     count += 1
                     time.sleep(2)
                     continue
+
+                elif "종료" == speech_text:
+                    break
                 
                 # 서버에서 글자를 인식 했을때
                 else :
@@ -155,7 +158,7 @@ def ocr(sock,type,source) :
                             playsound("settingvoice/no_re_recognize.mp3") # 네 알겠습니다. 대기 모드로 돌아가겠습니다.
                             count = 0
                             break
-
+                        
             except Exception as e :
                 print(e)
                 pass
@@ -260,6 +263,8 @@ if __name__ == '__main__' :
     mainService = multiprocessing.Process(target=service,args=(clientSock1,))
     mainService.start()
 
+    print(mainService.pid)
+
     # 취소 명령 루프
     while True :
         text = input('명령 입력 : ')
@@ -271,9 +276,11 @@ if __name__ == '__main__' :
             cancelProcess.join() # 클라이언트가 종료되기를 기다림
             cancelProcess.close() # 자원 반환 후 다시 취소 클라이언트 재시작
 
-            mainService.join()
-            mainService.terminate()
-            mainService.close()
+            #mainService.join()
+            print("서비스 종료 실행")
+            os.kill(mainService.pid, signal.SIGTERM)
+            #mainService.terminate()
+            #mainService.close()
             mainService = multiprocessing.Process(target=service,args=(clientSock1,))
             mainService.start()
 
