@@ -3,16 +3,18 @@ conda (python = 3.8.16)
 
 <br><br><br>
 
-# 폴더 설명
-<b>main => 현재 사용하는 클라이언트 소스코드</b></br>
-server => 서버에서 구동되는 소스코드 저장 폴더
-TEST_ROOM => 각종 모듈 테스트 및 소스코드 테스트</br>
-before_main => 이전에 사용하던 클라이언트 소스코드</br>
+# 가상환경 세팅
+[CLICK ME!](https://github.com/CJU-ACIN/NICA-AI/tree/main/_nica-venv)
 
 <br><br><br>
 
-# 가상환경 세팅
-[CLICK ME!](https://github.com/CJU-ACIN/NICA-AI/tree/main/_nica-venv)
+# 폴더 설명
+| <center> 폴더</center> | <center> 내용 </center> |
+|:---|:---:|
+| main | 현재 사용하는 클라이언트 소스코드 |
+| server | 서버에서 구동되는 소스코드 저장 폴더 |
+| TEST_ROOM | 각종 모듈 테스트 및 소스코드 테스트 |
+| before_main | 이전에 사용하던 클라이언트 소스코드 |
 
 <br><br><br>
 
@@ -25,3 +27,6 @@ before_main => 이전에 사용하던 클라이언트 소스코드</br>
 | gTTS | TTS 기능 |
 | playsound | 음성 재생 |
 | opencv | 영상 처리 |
+| yolov8 | 사물 인식 |
+| mediapipe | 손 포인트 인식 |
+
