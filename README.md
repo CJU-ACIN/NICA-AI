@@ -1,9 +1,13 @@
-conda</br>
-python = 3.8.16</br>
-=> requirements.txt 작성 필요</br>
-</hr>
-socket_c.py => 소켓 통신 전용 (클라이언트)  
-test_server => 리눅스 서버 전용 (서버)
+# 가상환경
+conda (python = 3.8.16)
+
+<br><br><br>
+
+# 폴더 설명
+<b>main => 현재 사용하는 클라이언트 소스코드</b></br>
+server => 서버에서 구동되는 소스코드 저장 폴더
+TEST_ROOM => 각종 모듈 테스트 및 소스코드 테스트</br>
+before_main => 이전에 사용하던 클라이언트 소스코드</br>
 
 <br><br><br>
 

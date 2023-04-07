@@ -79,8 +79,16 @@ def handRecognize(sock,type) :
     if ret :
         # 인코딩 후 사진 전송
         sendPhoto(sock,frame,type)
+        data = sock.recv(1024)                              # 서버에서 처리한 음성데이터 텍스트 수신
+        speech_text = "인식한 물체는 "+ data.decode('utf-8') + " 입니다."
 
         print("성공")
+
+        tts = gTTS(text=speech_text, lang='ko', slow=False)         # TTS 음성 파일 생성 => 재생 => 삭제
+        mp3_file = 'read.mp3'
+        tts.save(mp3_file)
+        playsound(mp3_file)
+        os.remove(mp3_file)
 
     # opencv 캡쳐 오류 시 다시 캡쳐
     else :
