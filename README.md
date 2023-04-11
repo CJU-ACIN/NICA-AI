@@ -1,8 +1,12 @@
 # Notion
-https://petalite-braid-692.notion.site/NICA-8da0f43ae1ba4e13b96f5b05526e406a
+[To Do List](https://petalite-braid-692.notion.site/NICA-8da0f43ae1ba4e13b96f5b05526e406a)
+
+<br><br><br>
 
 # 가상환경
-conda (python = 3.8.16)
+client => conda (python = 3.8.16)
+<br><br>
+server => venv (python = 3.8.10)
 
 <br><br><br>
 
