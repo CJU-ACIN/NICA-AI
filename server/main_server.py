@@ -228,8 +228,8 @@ if __name__ == '__main__' :
             
         #print(f'재실행 전 확인 :{current_process}')
         
-        subProcess = ""
-        mainProcess = ""
+        #subProcess = ""
+        #mainProcess = ""
             
         # 리스트 초기화
         current_process.clear()
