@@ -10,6 +10,7 @@ import torch
 
 #server.py
 from socket import *
+import face_recognition
 import matplotlib.pyplot as plt
 from PIL import Image
 import cv2, pickle, struct, io
@@ -91,7 +92,7 @@ def service(connectionSock):
                     connectionSock.send(text.encode('utf-8'))
 
             # 손 인식 일 경우
-            else :
+            elif 'hand' in command :
                 # 객체 선언
                 mpHands = mp.solutions.hands
                 hands = mpHands.Hands()
@@ -136,7 +137,78 @@ def service(connectionSock):
                     
                     os.remove(f"./yolo_images_result/result/{result_object}")
                     print("== 물체 인식 완료 ==")
-                                   
+
+            elif 'face' in command :
+
+                length = recvall(connectionSock,16)
+                stringData = recvall(connectionSock, int(length))
+                data = np.frombuffer(stringData, dtype='uint8')
+                decimg=cv2.imdecode(data,1)
+                cv2.imwrite("./input_unknown_face/input_face_data.jpeg", decimg)
+
+                # 등록된 사람 얼굴 목록 불러오기
+                known_faces = [face_recognition.load_image_file(f"./known_faces/{x}") for x in sorted(os.listdir('./known_faces/'))]
+                # 얼굴 특징점 인코딩
+                known_encodings = [face_recognition.face_encodings(x)[0] for x in known_faces]
+                # 이름 목록
+                known_names = [x.split('.')[0] for x in sorted(os.listdir('./known_faces/'))]
+
+                input_image = face_recognition.load_image_file("./input_unknown_face/input_face_data.jpeg") # 입력 사진 불러오기
+
+                select_image = input_image 
+
+                try:
+                    # check if image has face
+                    test_image_face_locations = face_recognition.face_locations(select_image)
+
+                    # encode test image
+                    test_image_face_encoding = face_recognition.face_encodings(select_image, test_image_face_locations)
+
+                    result_boolean = []
+                    for fe in test_image_face_encoding:
+                        # put list of arrays
+                        # if simularity >= 50%, it returns true
+                        result_boolean.append(face_recognition.compare_faces(known_encodings, fe, tolerance=0.5))
+
+                    print(result_boolean) # ex) [[True, False]] or [[True, False], [False, False]]
+
+                    result_name = []
+                    for res in result_boolean:
+                        # if [[False, False]]
+                        if sum(res) == 0:
+                            pass
+
+                        else:
+                            result_name.append(known_names[np.argmax(res)])
+                    
+                    name_text = "확인한 사람은 "
+                    
+                    for name in result_name :
+                        name_text += f"{name}, "
+                    name_text += "입니다."
+
+                    print(name_text)
+                    connectionSock.send(name_text.encode('utf-8'))
+                    os.remove(f"./input_unknown_face/input_face_data.jpeg")
+
+                except IndexError:
+                    print("인식된 사람이 없습니다.")
+                    pass
+
+            else : # 사람 얼굴 등록 시킬때 == 타입이 사람 이름일 경우 == commad가 사람 이름인 경우
+
+                name = command  # 커멘드는 저장할 사람 이름
+
+                length = recvall(connectionSock,16)
+                stringData = recvall(connectionSock, int(length))
+                data = np.frombuffer(stringData, dtype='uint8')
+                decimg=cv2.imdecode(data,1)
+                
+                #if name not in os.listdir('./known_faces/') : # 아는 사람 목록에 사진 저장 (같은 이름 또 입력 했을떄 처리 필요함)
+                cv2.imwrite(f"./known_faces/{name}.jpeg", decimg) 
+
+                connectionSock.send(f'{name} 님이 얼굴 인식 시스템에 등록 되었습니다.'.encode('utf-8'))
+
         except ConnectionAbortedError:
             break
         
@@ -228,8 +300,8 @@ if __name__ == '__main__' :
             
         #print(f'재실행 전 확인 :{current_process}')
         
-        #subProcess = ""
-        #mainProcess = ""
+        subProcess = ""
+        mainProcess = ""
             
         # 리스트 초기화
         current_process.clear()
@@ -239,6 +311,4 @@ if __name__ == '__main__' :
         
         time.sleep(5) # 안전빵 부팅
         
-        
-    print(f"현재 서비스 이용자: {cur_conn}")
     

@@ -16,11 +16,11 @@ if __name__ == "__main__":
     known_names = [x.split('.')[0] for x in sorted(os.listdir('known_faces/'))]
 
     # load 5 test images
-    image1 = face_recognition.load_image_file("test_image/OBAMA.jpg") # 1 known face
-    image2 = face_recognition.load_image_file("test_image/TRUMP+OBAMA.jpg") # 2 known faces
-    image3 = face_recognition.load_image_file("test_image/unknown.jpg") # 1 unknown face
-    image4 = face_recognition.load_image_file("test_image/OBAMA+unknown.jpg") # 1 known face + 1 unknown face
-    image5 = face_recognition.load_image_file("test_image/unknown1+unknown2.jpg") # 2 unknown faces
+    image1 = face_recognition.load_image_file("test_image/OBAMA.jpg") # 1 알고 있는 얼굴
+    image2 = face_recognition.load_image_file("test_image/TRUMP+OBAMA.jpg") # 2 알고 있는 얼굴
+    image3 = face_recognition.load_image_file("test_image/unknown.jpg") # 1 모르는 얼굴
+    image4 = face_recognition.load_image_file("test_image/OBAMA+unknown.jpg") # 1 알고 있는 얼굴 + 1 모르는 얼굴
+    image5 = face_recognition.load_image_file("test_image/unknown1+unknown2.jpg") # 2 모르는 얼굴
 
     # choose your image
     select_image = image5

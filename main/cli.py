@@ -9,6 +9,15 @@ import numpy as np
 from gtts import gTTS
  
 
+# TTS 모듈
+def client_TTS(speech_text) :
+    tts = gTTS(text=speech_text, lang='ko', slow=False)                 # TTS 음성 파일 생성 => 재생 => 삭제
+    mp3_file = 'read.mp3'
+    tts.save(mp3_file)
+    playsound(mp3_file)
+    os.remove(mp3_file)
+
+
 # 취소 클라이언트 => 서버에 취소 명령을 보냄
 def cancelClient(clientSock) :
    
@@ -70,26 +79,21 @@ def speech2Text(work,source,time) :
         return "none"
 
 
-# 손 위치 인식 모듈
+# 손 위치 사물 인식 모듈
 def handRecognize(sock,type) :
 
-    vid = cv2.VideoCapture(0)                       # 캡쳐 객체 생성
+    print("물체 인식 캡쳐 실행")
+    vid = cv2.VideoCapture(0)                                               # 캡쳐 객체 생성
     ret, frame = vid.read()                         
 
     if ret :
         # 인코딩 후 사진 전송
         sendPhoto(sock,frame,type)
-        data = sock.recv(1024)                              # 서버에서 처리한 음성데이터 텍스트 수신
+        data = sock.recv(1024)                                              # 서버에서 처리한 음성데이터 텍스트 수신
         speech_text = "인식한 물체는 "+ data.decode('utf-8') + " 입니다."
-
         print("성공")
-
-        tts = gTTS(text=speech_text, lang='ko', slow=False)         # TTS 음성 파일 생성 => 재생 => 삭제
-        mp3_file = 'read.mp3'
-        tts.save(mp3_file)
-        playsound(mp3_file)
-        os.remove(mp3_file)
-
+        client_TTS(speech_text)                                             # TTS 음성 파일 생성 => 재생 => 삭제
+    
     # opencv 캡쳐 오류 시 다시 캡쳐
     else :
         print("사진 캡쳐에 오류가 있습니다.")
@@ -102,35 +106,31 @@ def ocr(sock,type,source) :
     count = 0
     while count < 3 :
 
-        print("캡쳐 실행")
-        vid = cv2.VideoCapture(0)                                   # 객체 생석
+        print("OCR 캡쳐 실행")
+        vid = cv2.VideoCapture(0)                                               # 객체 생석
         ret, frame = vid.read() 
         
         if ret :
-            sendPhoto(sock,frame,type)                              # 인코딩 후 사진 전송
-            vid.release()                                           # 캡쳐 객체 반환
+            sendPhoto(sock,frame,type)                                          # 인코딩 후 사진 전송
+            vid.release()                                                       # 캡쳐 객체 반환
 
             try :
-                data = sock.recv(1024)                              # 서버에서 처리한 음성데이터 텍스트 수신
+                data = sock.recv(1024)                                          # 서버에서 처리한 음성데이터 텍스트 수신
                 speech_text = data.decode('utf-8')
 
                 # 서버에서 글자를 인식하지 못 했을때
                 if "글자를 탐지하지 못했어요..." == speech_text :
-                    playsound("settingvoice/re_vid_cap.mp3")        # 글자를 탐지하지 못했어요 다시 탐지하겠습니다.
+                    playsound("settingvoice/re_vid_cap.mp3")                    # 글자를 탐지하지 못했어요 다시 탐지하겠습니다.
                     count += 1
                     time.sleep(2)
-                    continue                                        # 다시 재 촬영
+                    continue                                                    # 다시 재 촬영
 
                 elif "종료" == speech_text:
                     break
                 
                 # 서버에서 글자를 인식 했을때
                 else :
-                    tts = gTTS(text=speech_text, lang='ko', slow=False)         # TTS 음성 파일 생성 => 재생 => 삭제
-                    mp3_file = 'read.mp3'
-                    tts.save(mp3_file)
-                    playsound(mp3_file)
-                    os.remove(mp3_file)
+                    client_TTS(speech_text)                                     # TTS 음성 파일 생성 => 재생 => 삭제
                     
                     # 명령어가 책 읽기 일때
                     if type == "book" :
@@ -171,15 +171,98 @@ def ocr(sock,type,source) :
             continue
 
     # 3회 글자 인식 실패
+    if count >= 2 : playsound('settingvoice/count_out_read_book.mp3')           # 3회 이상 틀려서 대기모드로 돌아갑니다.
+
+
+# 얼굴 인식 모듈
+def face_recog(sock,type,source) :
+
+    if type == "face" :
+
+        count = 0
+        while count < 3 :
+
+            print("얼굴 캡쳐 실행")
+            vid = cv2.VideoCapture(0)                                   # 객체 생석
+            ret, frame = vid.read() 
+
+            if ret :
+                sendPhoto(sock,frame,type)                              # 인코딩 후 사진 전송
+                vid.release()                                           # 캡쳐 객체 반환
+
+                try :
+                    data = sock.recv(1024)                              # 서버에서 처리한 음성데이터 텍스트 수신
+                    speech_text = data.decode('utf-8')
+                    print("얼굴 인식 성공")
+                    client_TTS(speech_text)                             # TTS 음성 파일 생성 => 재생 => 삭제
+                    
+                except Exception as e :
+                    print(e)
+                    pass
+
+            else :
+                print("사진 캡쳐에 오류가 있습니다.")
+                playsound('settingvoice/cap_error.mp3')
+                count += 1
+                time.sleep(2)
+                continue
+
+    elif type == "face_save" :
+        
+        count = 0
+        while count < 3 :
+
+            print("얼굴 저장 모듈 캡쳐 실행")
+            vid = cv2.VideoCapture(0)                                   # 객체 생석
+            ret, frame = vid.read() 
+
+            if ret :
+
+                # (음성) 얼굴 사진을 성공적으로 캡쳐 했습니다. 해당 인물의 이름을 말씀해주세요.
+
+                while True :
+
+                    name = speech2Text("[호출/명령/이름 입력]",source,5) 
+
+                    client_TTS(f'저장 하실 인물의 이름이. {name}. 가 맞으신가요?') 
+
+                    name_bool = speech2Text("[호출/명령/이름 입력/이름 확인]",source,3)
+
+                    if "네" in name_bool :
+
+                        # (음성) 네 알겠습니다. 해당 인물을 저장하겠습니다.
+                        sendPhoto(sock,frame,name)                              # 얼굴 저장 모듈에서는 타입에 저장할 이름이 들어감!
+                        vid.release()
+
+                        data = sock.recv(1024)                                  # 서버 작업 대기
+                        speech_text = data.decode('utf-8')
+
+                        client_TTS(speech_text) 
+
+                        break
+                    
+                    else :
+                        # (음성) 네 알겠습니다. 해당 인물의 이름을 다시 한번 말씀 해주세요.
+                        continue
+
+            else :
+                print("사진 캡쳐에 오류가 있습니다.")
+                playsound('settingvoice/cap_error.mp3')
+                count += 1
+                time.sleep(2)
+                continue
+
+    # 3회 글자 인식 실패
     if count >= 2 : playsound('settingvoice/count_out_read_book.mp3') # 3회 이상 틀려서 대기모드로 돌아갑니다.
 
 
+#--------------------------------- 커멘드 센터 ---------------------------------# 
 # 어떤 명령인지 mqtt를 통해서 전달 (사물인식, 네비게이션, 책 읽기, 거리 측정)
 def commandList(source,clientSock) :
    
     for i in range(3) :
         playsound('settingvoice/good.mp3')
-        command = speech2Text("[명령]",source,10)                        # 음성 명령어 입력 받음
+        command = speech2Text("[호출/명령]",source,10)                        # 음성 명령어 입력 받음
     
         if i != 3 :
 
@@ -197,9 +280,18 @@ def commandList(source,clientSock) :
                 handRecognize(clientSock,"hand")                        # (명령애 따라서) 카메라 작동 및 소켓 통신 => 손 인식 모드
                 break
 
+            elif '얼굴' in command :
+                face_recog(clientSock,"face",source)
+                break
+
+            elif '저장' in command  :
+                face_recog(clientSock,"face_save",source)
+                break
+
             elif '니카' in command or '니가' in command :
                 playsound('settingvoice/start.mp3')                     # 안녕하세요 니카입니다. 무엇을 도와드릴까요?
                 time.sleep(0.5)
+                i = 0                                                   # i를 0으로 만들어서 초기회
 
             else :
                 playsound('settingvoice/re_voice_input.mp3')            # 해당하는 명령어를 찾을 수 없어요. 다시 말씀해 주세요.
@@ -233,13 +325,13 @@ if __name__ == '__main__' :
 
     server_address = '203.252.240.40'
 
-    clientSock1 = socket(AF_INET, SOCK_STREAM)        # 서비스 클라이언트 실행
+    clientSock1 = socket(AF_INET, SOCK_STREAM)                                                  # 서비스 클라이언트 실행
     clientSock1.connect((server_address, 8081)) 
     print("서비스 클라이언트 연결 완료")
 
     time.sleep(2)
 
-    clientSock = socket(AF_INET, SOCK_STREAM)         # 취소 클라이언트 실행
+    clientSock = socket(AF_INET, SOCK_STREAM)                                                   # 취소 클라이언트 실행
     clientSock.connect((server_address, 8081)) 
     print("취소 클라이언트 연결 완료")
 
