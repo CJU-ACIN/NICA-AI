@@ -194,7 +194,8 @@ def face_recog(sock,type,source) :
                     data = sock.recv(1024)                              # 서버에서 처리한 음성데이터 텍스트 수신
                     speech_text = data.decode('utf-8')
                     print("얼굴 인식 성공")
-                    client_TTS(speech_text)                             # TTS 음성 파일 생성 => 재생 => 삭제
+                    client_TTS(speech_text)   
+                    break                                               # TTS 음성 파일 생성 => 재생 => 삭제
                     
                 except Exception as e :
                     print(e)
@@ -244,6 +245,7 @@ def face_recog(sock,type,source) :
                     else :
                         # (음성) 네 알겠습니다. 해당 인물의 이름을 다시 한번 말씀 해주세요.
                         continue
+                break
 
             else :
                 print("사진 캡쳐에 오류가 있습니다.")
@@ -258,6 +260,9 @@ def face_recog(sock,type,source) :
 
 #--------------------------------- 커멘드 센터 ---------------------------------# 
 # 어떤 명령인지 mqtt를 통해서 전달 (사물인식, 네비게이션, 책 읽기, 거리 측정)
+
+call_nica = ['니카','니가','니까']
+
 def commandList(source,clientSock) :
    
     for i in range(3) :
@@ -280,7 +285,7 @@ def commandList(source,clientSock) :
                 handRecognize(clientSock,"hand")                        # (명령애 따라서) 카메라 작동 및 소켓 통신 => 손 인식 모드
                 break
 
-            elif '얼굴' in command :
+            elif '누구' in command :
                 face_recog(clientSock,"face",source)
                 break
 
@@ -288,7 +293,7 @@ def commandList(source,clientSock) :
                 face_recog(clientSock,"face_save",source)
                 break
 
-            elif '니카' in command or '니가' in command :
+            elif any(word in command for word in call_nica) :
                 playsound('settingvoice/start.mp3')                     # 안녕하세요 니카입니다. 무엇을 도와드릴까요?
                 time.sleep(0.5)
                 i = 0                                                   # i를 0으로 만들어서 초기회
@@ -309,7 +314,7 @@ def service(clientSock):
             result = speech2Text("[호출]",source,5)              # 음성 인식
             
             # 호출
-            if '니카' in result or '니가' in result :             
+            if any(word in result for word in call_nica) :             
                 playsound('settingvoice/start.mp3')             # 안녕하세요 니카입니다. 무엇을 도와드릴까요?
                 time.sleep(0.5)
                 commandList(source,clientSock)                  # 명령어 판별
