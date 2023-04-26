@@ -1,23 +1,32 @@
 #server.py
 import os
 import shutil
+import dlib
 from socket import *
 # import threading # 멀티스레드를 통한 병렬처리
 import time, math # 작업시간 예시
 import multiprocessing
 from multiprocessing import set_start_method
 import torch
+from glob import glob
 
 #server.py
 from socket import *
 import face_recognition
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from PIL import Image
 import cv2, pickle, struct, io
 import numpy as np
 import base64, time
 from pororo import Pororo
 import mediapipe as mp
+
+dlib.DLIB_USE_CUDA = False
+print(dlib.DLIB_USE_CUDA)
+
+face_recognition.face_distance.batch_size = None
+face_recognition.face_encodings.batch_size = None
+face_recognition.face_locations.batch_size = None
 
 def recvall(sock, count):
     buf = b''
@@ -93,16 +102,15 @@ def service(connectionSock):
 
             # 손 인식 일 경우
             elif 'hand' in command :
+                
                 # 객체 선언
                 mpHands = mp.solutions.hands
                 hands = mpHands.Hands()
-                #mpDraw = mp.solutions.drawing_utils
-
+            
                 # 이미지 디코딩 후 저장
                 imageDecode(connectionSock)
 
                 src = cv2.imread('t.jpeg', cv2.IMREAD_COLOR)
-                
                 dst = cv2.cvtColor(src, cv2.COLOR_BGR2RGB)
                 result = hands.process(dst)
 
@@ -117,24 +125,19 @@ def service(connectionSock):
                             elif id == 7 :
                                 x2, y2 = cx, cy
                                 
-                    if x1<x2 :
-                        xy_tuple = handPoint(x1,y1,x2,y2,src,True)
-                        #reuslt_text = whatIsThat(org, xy_tuple) # 아예 이미지 원본값. 점이 찍혀있는 이미지면 안되니깐
-                        #print(reuslt_text)
+                    if x1<x2 : 
+                        xy_tuple = handPoint(x1,y1,x2,y2,src,True) # 오른손 = True
 
                     else :
-                        xy_tuple = handPoint(x1,y1,x2,y2,src,False)
-                        #reuslt_text = whatIsThat(org, xy_tuple) # 아예 이미지 원본값. 점이 찍혀있는 이미지면 안되니깐
-                        #print(reuslt_text)
-                    
+                        xy_tuple = handPoint(x1,y1,x2,y2,src,False) # 왼손 = Fasle
+                
                     os.rename('t.jpeg', f'{xy_tuple}.jpeg') # 손 끝점이 있는 곳으로 파일 이름 변경
                     print("사진 이름 변경 완료")
-                    shutil.move(f'{xy_tuple}.jpeg', f"./yolo_images_result/{xy_tuple}.jpeg") # 이미지 파일 이동
+                    shutil.move(f'{xy_tuple}.jpeg', f"./yolo_images_result/result/{xy_tuple}.jpeg") # 이미지 파일 이동
                     print("사진 이동 완료")
-                    time.sleep(5)
+                    time.sleep(2)
                     result_object = str(os.listdir('./yolo_images_result/result/')[0])
                     connectionSock.send(result_object.split(".")[0].encode('utf-8'))
-                    
                     os.remove(f"./yolo_images_result/result/{result_object}")
                     print("== 물체 인식 완료 ==")
 
@@ -148,53 +151,62 @@ def service(connectionSock):
 
                 # 등록된 사람 얼굴 목록 불러오기
                 known_faces = [face_recognition.load_image_file(f"./known_faces/{x}") for x in sorted(os.listdir('./known_faces/'))]
+                
                 # 얼굴 특징점 인코딩
-                known_encodings = [face_recognition.face_encodings(x)[0] for x in known_faces]
-                # 이름 목록
-                known_names = [x.split('.')[0] for x in sorted(os.listdir('./known_faces/'))]
-
-                input_image = face_recognition.load_image_file("./input_unknown_face/input_face_data.jpeg") # 입력 사진 불러오기
-
-                select_image = input_image 
-
-                try:
-                    # check if image has face
-                    test_image_face_locations = face_recognition.face_locations(select_image)
-
-                    # encode test image
-                    test_image_face_encoding = face_recognition.face_encodings(select_image, test_image_face_locations)
-
-                    result_boolean = []
-                    for fe in test_image_face_encoding:
-                        # put list of arrays
-                        # if simularity >= 50%, it returns true
-                        result_boolean.append(face_recognition.compare_faces(known_encodings, fe, tolerance=0.5))
-
-                    print(result_boolean) # ex) [[True, False]] or [[True, False], [False, False]]
-
-                    result_name = []
-                    for res in result_boolean:
-                        # if [[False, False]]
-                        if sum(res) == 0:
-                            pass
-
-                        else:
-                            result_name.append(known_names[np.argmax(res)])
+                try :
+                    known_encodings = [face_recognition.face_encodings(x)[0] for x in known_faces]
+                    print("실행 확인")
+                    # 이름 목록
+                    known_names = [x.split('.')[0] for x in sorted(os.listdir('./known_faces/'))]
+                    print(known_names)
                     
-                    name_text = "확인한 사람은 "
+                    input_image = face_recognition.load_image_file("./input_unknown_face/input_face_data.jpeg") # 입력 사진 불러오기
+
+                    select_image = input_image 
+
+                    try:
+                        # check if image has face
+                        test_image_face_locations = face_recognition.face_locations(select_image)
+
+                        # encode test image
+                        test_image_face_encoding = face_recognition.face_encodings(select_image, test_image_face_locations)
+
+                        result_boolean = []
+                        for fe in test_image_face_encoding:
+                            # put list of arrays
+                            # if simularity >= 50%, it returns true
+                            result_boolean.append(face_recognition.compare_faces(known_encodings, fe, tolerance=0.5))
+
+                        print(result_boolean) # ex) [[True, False]] or [[True, False], [False, False]]
+
+                        result_name = []
+                        for res in result_boolean:
+                            # if [[False, False]]
+                            if sum(res) == 0:
+                                pass
+
+                            else:
+                                result_name.append(known_names[np.argmax(res)])
+                        
+                        name_text = "확인한 사람은 "
+                        
+                        for name in result_name :
+                            name_text += f"{name}, "
+                        name_text += "입니다."
+
+                        print(name_text)
+                        connectionSock.send(name_text.encode('utf-8'))
+                        os.remove(f"./input_unknown_face/input_face_data.jpeg")
+
+                    except IndexError:
+                        print("인식된 사람이 없습니다.")
+                        pass
+                
+                except Exception as e:
+                    print(e)
+                    connectionSock.send("저장된 인물 데이터에 문제가 있어요. 제거가 필요합니다.".encode('utf-8'))
+                    #os.remove(f"./input_unknown_face/input_face_data.jpeg")
                     
-                    for name in result_name :
-                        name_text += f"{name}, "
-                    name_text += "입니다."
-
-                    print(name_text)
-                    connectionSock.send(name_text.encode('utf-8'))
-                    os.remove(f"./input_unknown_face/input_face_data.jpeg")
-
-                except IndexError:
-                    print("인식된 사람이 없습니다.")
-                    pass
-
             else : # 사람 얼굴 등록 시킬때 == 타입이 사람 이름일 경우 == commad가 사람 이름인 경우
 
                 name = command  # 커멘드는 저장할 사람 이름
