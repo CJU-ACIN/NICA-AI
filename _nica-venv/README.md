@@ -49,33 +49,18 @@ ffmpeg-git-essentials.7z
 ```
 여기에 들어와서 ffmpeg.exe 넣어주셈
 
-~~다운 받고 압축 풀고 나오는 /bin 폴더에 환경변수 등록~~ (안해도되는것같음)
+~~pyhton-ffmpeg 패키지에 ffmpeg.exe 파일이 누락되어있음~~
 
 
 <br><br>
 
 ## 3. 나머지 설치
 
-***주의: playsound는 1.2.2 버전 설치. 이유 궁금하면 최신걸로 설치하셈***
+***주의: playsound는 1.2.2 버전 설치. 호환성 문제***
 
 ```
-pip install opencv-python
-```
+python -m pip install opencv-python gtts SpeechRecognition playsound==1.2.2 pyaudio
 
-```
-pip install gtts
-```
-
-```
-pip install SpeechRecognition
-```
-
-```
-pip install playsound==1.2.2
-```
-
-```
-pip install pyaudio
 ```
 
 <br><br>

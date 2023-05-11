@@ -87,12 +87,14 @@ if __name__ == '__main__' :
     server_address = '203.252.240.40'
 
     clientSock1 = socket(AF_INET, SOCK_STREAM)                                                  # 서비스 클라이언트 실행
+    clientSock1.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1) # 포트 즉시 사용
     clientSock1.connect((server_address, 8081)) 
     print("서비스 클라이언트 연결 완료")
 
     time.sleep(2)
 
     clientSock = socket(AF_INET, SOCK_STREAM)                                                   # 취소 클라이언트 실행
+    clientSock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1) # 포트 즉시 사용
     clientSock.connect((server_address, 8081)) 
     print("취소 클라이언트 연결 완료")
 

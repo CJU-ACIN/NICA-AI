@@ -48,8 +48,8 @@ def speech2Text(work,source,time) :
         mel = whisper.log_mel_spectrogram(audio).to(model.device)
         _, probs = model.detect_language(mel)
         
-        print(f"- 감지된 언어 : {max(probs, key=probs.get)}")                   # 입력 값 확인 후 반환
-        options = whisper.DecodingOptions(fp16 = False)
+        # print(f"- 감지된 언어 : {max(probs, key=probs.get)}")                   # 입력 값 확인 후 반환
+        options = whisper.DecodingOptions(fp16 = False, language="ko")      # 항상 한글로 해석해줌
         result = whisper.decode(model, mel, options)
         os.remove('voice/input.wav')
 
@@ -64,8 +64,9 @@ def speech2Text(work,source,time) :
 # 손 위치 사물 인식 모듈
 def handRecognize(sock,type) :
 
-    print("물체 인식 캡쳐 실행")
-    vid = cv2.VideoCapture(0)                                               # 캡쳐 객체 생성
+    print("물체 인식 캡쳐 실행")      
+
+    vid = cv2.VideoCapture(0)
     ret, frame = vid.read()                         
 
     if ret :
@@ -92,6 +93,7 @@ def ocr(sock,type,source) :
     while count < 3 :
 
         print("OCR 캡쳐 실행")
+
         vid = cv2.VideoCapture(0)                                               # 객체 생석
         ret, frame = vid.read() 
         
@@ -168,6 +170,7 @@ def face_recog(sock,type,source) :
         while count < 3 :
 
             print("얼굴 캡쳐 실행")
+
             vid = cv2.VideoCapture(0)                                   # 객체 생석
             ret, frame = vid.read() 
 
@@ -199,6 +202,7 @@ def face_recog(sock,type,source) :
         while count < 3 :
 
             print("얼굴 저장 모듈 캡쳐 실행")
+
             vid = cv2.VideoCapture(0)                                   # 객체 생석
             ret, frame = vid.read() 
 
