@@ -7,6 +7,7 @@
 | gTTS | TTS 기능 |
 | playsound | 음성 재생 |
 | opencv | 영상 처리 |
+| mqtt | 통신 |
 
 
 <br><br><br>
@@ -74,3 +75,9 @@ python -m pip install opencv-python gtts SpeechRecognition playsound==1.2.2 pyau
 ``moduleImportTest.py`` 실행해서 테스트
 
 작업파일은 moudleImportTest랑 동일한 경로에서 실행
+
+## 4. mqtt 설치 
+```
+pip install paho-mqtt
+
+```
